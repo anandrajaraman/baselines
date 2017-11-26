@@ -47,10 +47,8 @@ def traj_segment_generator(pi, env, horizon, stochastic):
         news[i] = new
         acs[i] = ac
         prevacs[i] = prevac
-
         ob, rew, new, _ = env.step(ac)
         rews[i] = rew
-
         cur_ep_ret += rew
         cur_ep_len += 1
         if new:
@@ -211,6 +209,12 @@ def learn(env, policy_func, *,
         logger.record_tabular("TimeElapsed", time.time() - tstart)
         if MPI.COMM_WORLD.Get_rank()==0:
             logger.dump_tabular()
+
+    # Adding in a block to simulate a trajectory using the learned policy
+    logger.log("TRAINING COMPLETE. EVALUATING LEARNED POLICY...")
+    for t in range(10000):
+        seg = seg_gen.__next__()  # generate new segment
+        env.render()  # render the scene
 
 def flatten_lists(listoflists):
     return [el for list_ in listoflists for el in list_]
